@@ -707,7 +707,7 @@ class PostgresTarget(SQLInterface):
             comment = cur.fetchone()[0]
         except TypeError:
             self.LOGGER.info(f'Table with objoid: {self.postgres_schema}.{table_name} has no description')
-            comment = None
+            return None
 
         if comment:
             try:
