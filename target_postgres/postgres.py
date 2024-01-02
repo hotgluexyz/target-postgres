@@ -702,7 +702,12 @@ class PostgresTarget(SQLInterface):
             sql.SQL('SELECT description FROM pg_description WHERE objoid = {}::regclass;').format(
                 sql.Literal(
                     '"{}"."{}"'.format(self.postgres_schema, table_name))))
-        comment = cur.fetchone()[0]
+
+        try:
+            comment = cur.fetchone()[0]
+        except TypeError:
+            self.LOGGER.info(f'Table with objoid: {self.postgres_schema}.{table_name} has no description')
+            return None
 
         if comment:
             try:
