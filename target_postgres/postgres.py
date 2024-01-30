@@ -224,7 +224,23 @@ class PostgresTarget(SQLInterface):
             self.LOGGER.info("Mapping: {} to {}".format(mapped_name, table_path))
             if table_path:
                 self.table_mapping_cache[tuple(table_path)] = mapped_name
+    def set_table_schema(self, cur, table_name, table_schema):
+        # Get the current key properties
+        cur.execute(f"SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '{table_name}';")
+        current_key_properties = [row[0] for row in cur.fetchall()]
 
+        # Get the new key properties
+        new_key_properties = table_schema['key_properties']
+
+        # If the key properties have changed, update the primary key
+        if set(new_key_properties) != set(current_key_properties):
+            # Drop the existing primary key
+            cur.execute(f"ALTER TABLE {table_name} DROP CONSTRAINT IF EXISTS {table_name}_pkey;")
+
+            # Add the new composite primary key
+            key_properties_str = ', '.join(new_key_properties)
+            cur.execute(f"ALTER TABLE {table_name} ADD CONSTRAINT {table_name}_pkey PRIMARY KEY ({key_properties_str});")
+            
     def write_batch(self, stream_buffer):
         if not self.persist_empty_tables and stream_buffer.count == 0:
             return None
@@ -243,13 +259,17 @@ class PostgresTarget(SQLInterface):
                 if current_table_schema:
                     current_table_version = current_table_schema.get('version', None)
 
-                    if set(stream_buffer.key_properties) \
-                            != set(current_table_schema.get('key_properties')):
-                        raise PostgresError(
-                            '`key_properties` change detected. Existing values are: {}. Streamed values are: {}'.format(
-                                current_table_schema.get('key_properties'),
-                                stream_buffer.key_properties
-                            ))
+                    if set(stream_buffer.key_properties) != set(current_table_schema.get('key_properties')):
+                        existing_key_properties = set(current_table_schema.get('key_properties'))
+                        streamed_key_properties = set(stream_buffer.key_properties)
+                        new_key_properties = streamed_key_properties - existing_key_properties
+
+                        if new_key_properties:
+                            self.add_key_properties(cur, root_table_name, new_key_properties)
+                            self.LOGGER.info('Added new key properties to table {}: {}'.format(root_table_name, new_key_properties))
+
+                        current_table_schema['key_properties'] = stream_buffer.key_properties
+                        self.set_table_schema(cur, root_table_name, current_table_schema)
 
                     for key_property in stream_buffer.key_properties:
                         canonicalized_key, remote_column_schema = self.fetch_column_from_path((key_property,),
