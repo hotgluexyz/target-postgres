@@ -277,13 +277,18 @@ class PostgresTarget(SQLInterface):
                         if self.json_schema_to_sql_type(remote_column_schema) \
                                 != self.json_schema_to_sql_type(stream_buffer.schema['properties'][key_property]):
                             try:
+                                self.LOGGER.info('Converting column type for {} from {} to {}'.format(
+                                    key_property,
+                                    self.json_schema_to_sql_type(remote_column_schema),
+                                    self.json_schema_to_sql_type(stream_buffer.schema['properties'][key_property])
+                                ))
                                 # Update the column type in the existing table schema
                                 current_table_schema['schema']['properties'][key_property]['type'] = stream_buffer.schema['properties'][key_property]['type']
                                 self.set_table_schema(cur, root_table_name, current_table_schema)
                             except Exception as ex:
                                 self.LOGGER.warning('Error converting column type: {}'.format(ex))
                                 cur.execute('ROLLBACK;')
-                                return None
+                                raise ex
 
                 target_table_version = current_table_version or stream_buffer.max_version
 
