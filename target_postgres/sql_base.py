@@ -381,7 +381,7 @@ class SQLInterface:
         :return: TABLE_SCHEMA(remote)
         """
         table_path = schema['path']
-
+        upsert_table_helper__column = None
         with self._set_timer_tags(metrics.job_timer(),
                                   'upsert_table_schema',
                                   table_path) as timer:
@@ -495,28 +495,29 @@ class SQLInterface:
                                             m['from'] == column_path and json_schema.shorthand(
                                                 m) == json_schema.shorthand(column_schema)]
                 if non_null_original_column:
-                    ## MAKE NULLABLE
-                    self.make_column_nullable(connection,
-                                              table_name,
-                                              canonicalized_column_name)
-                    self.drop_column_mapping(connection, table_name, canonicalized_column_name)
-                    self.add_column_mapping(connection,
-                                            table_name,
-                                            column_path,
-                                            canonicalized_column_name,
-                                            nullable_column_schema)
+                    if canonicalized_column_name not in schema.get('key_properties', None):
+                        ## MAKE NULLABLE
+                        self.make_column_nullable(connection,
+                                                table_name,
+                                                canonicalized_column_name)
+                        self.drop_column_mapping(connection, table_name, canonicalized_column_name)
+                        self.add_column_mapping(connection,
+                                                table_name,
+                                                column_path,
+                                                canonicalized_column_name,
+                                                nullable_column_schema)
 
-                    mappings = [m for m in mappings if not (m['from'] == column_path and json_schema.shorthand(
-                        m) == json_schema.shorthand(column_schema))]
+                        mappings = [m for m in mappings if not (m['from'] == column_path and json_schema.shorthand(
+                            m) == json_schema.shorthand(column_schema))]
 
-                    mapping = json_schema.simple_type(nullable_column_schema)
-                    mapping['from'] = column_path
-                    mapping['to'] = canonicalized_column_name
-                    mappings.append(mapping)
+                        mapping = json_schema.simple_type(nullable_column_schema)
+                        mapping['from'] = column_path
+                        mapping['to'] = canonicalized_column_name
+                        mappings.append(mapping)
 
-                    log_message("Made existing column nullable.")
+                        log_message("Made existing column nullable.")
 
-                    continue
+                        continue
 
                 ### FIRST MULTI TYPE
                 ###  New column matches existing column path, but the types are incompatible
@@ -561,33 +562,34 @@ class SQLInterface:
                                             canonicalized_column_name,
                                             nullable_column_schema)
 
-                    #### Columns
-                    self.add_column(connection,
-                                    table_name,
-                                    existing_column_new_normalized_name,
-                                    json_schema.make_nullable(existing_mapping))
-
-                    self.add_column(connection,
-                                    table_name,
-                                    canonicalized_column_name,
-                                    nullable_column_schema)
-
-                    ## Migrate existing data
-                    self.migrate_column(connection,
+                    if canonicalized_column_name not in schema.get('key_properties', None):
+                        #### Columns
+                        self.add_column(connection,
                                         table_name,
-                                        existing_mapping['to'],
-                                        existing_column_new_normalized_name)
+                                        existing_column_new_normalized_name,
+                                        json_schema.make_nullable(existing_mapping))
 
-                    ## Drop existing column
-                    self.drop_column(connection,
-                                     table_name,
-                                     existing_mapping['to'])
+                        self.add_column(connection,
+                                        table_name,
+                                        canonicalized_column_name,
+                                        nullable_column_schema)
 
-                    upsert_table_helper__column = "Splitting `{}` into `{}` and `{}`. New column matches existing column path, but the types are incompatible.".format(
-                        existing_column_name,
-                        existing_column_new_normalized_name,
-                        canonicalized_column_name
-                    )
+                        ## Migrate existing data
+                        self.migrate_column(connection,
+                                            table_name,
+                                            existing_mapping['to'],
+                                            existing_column_new_normalized_name)
+
+                        ## Drop existing column
+                        self.drop_column(connection,
+                                        table_name,
+                                        existing_mapping['to'])
+
+                        upsert_table_helper__column = "Splitting `{}` into `{}` and `{}`. New column matches existing column path, but the types are incompatible.".format(
+                            existing_column_name,
+                            existing_column_new_normalized_name,
+                            canonicalized_column_name
+                        )
 
                 ## REST MULTI TYPE
                 elif 1 < len(duplicate_paths):
@@ -619,8 +621,8 @@ class SQLInterface:
                             canonicalized_column_name,
                             table_name
                         ))
-
-                log_message(upsert_table_helper__column)
+                if upsert_table_helper__column:
+                    log_message(upsert_table_helper__column)
 
             if not existing_table:
                 for column_names in self.new_table_indexes(schema):
