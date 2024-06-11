@@ -43,3 +43,6 @@ def cli():
     args = utils.parse_args(REQUIRED_CONFIG_KEYS)
 
     main(args.config)
+
+if __name__ == '__main__':
+    cli()
