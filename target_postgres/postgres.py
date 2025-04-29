@@ -12,7 +12,8 @@ import arrow
 from psycopg2 import sql
 from psycopg2.extras import LoggingConnection, LoggingCursor
 
-from target_postgres import json_schema, singer
+from target_postgres import json_schema
+from target_postgres import singer_target as singer
 from target_postgres.exceptions import PostgresError
 from target_postgres.sql_base import SEPARATOR, SQLInterface
 
@@ -62,7 +63,10 @@ class _MillisLoggingCursor(LoggingCursor):
 
     def execute(self, query, vars=None):
         self.timestamp = time.monotonic()
-        return super(_MillisLoggingCursor, self).execute(query, vars)
+        try:
+            return super(_MillisLoggingCursor, self).execute(query, vars)
+        except Exception as e:
+            e
 
     def callproc(self, procname, vars=None):
         self.timestamp = time.monotonic()
@@ -254,19 +258,19 @@ class PostgresTarget(SQLInterface):
                     for key_property in stream_buffer.key_properties:
                         canonicalized_key, remote_column_schema = self.fetch_column_from_path((key_property,),
                                                                                               current_table_schema)
-                        if self.json_schema_to_sql_type(remote_column_schema) \
-                                != self.json_schema_to_sql_type(stream_buffer.schema['properties'][key_property]):
-                            raise PostgresError(
-                                ('`key_properties` type change detected for "{}". ' +
-                                 'Existing values are: {}. ' +
-                                 'Streamed values are: {}, {}, {}').format(
-                                    key_property,
-                                    json_schema.get_type(current_table_schema['schema']['properties'][key_property]),
-                                    json_schema.get_type(stream_buffer.schema['properties'][key_property]),
-                                    self.json_schema_to_sql_type(
-                                        current_table_schema['schema']['properties'][key_property]),
-                                    self.json_schema_to_sql_type(stream_buffer.schema['properties'][key_property])
-                                ))
+                        # if self.json_schema_to_sql_type(remote_column_schema) \
+                        #         != self.json_schema_to_sql_type(stream_buffer.schema['properties'][key_property]):
+                        #     raise PostgresError(
+                        #         ('`key_properties` type change detected for "{}". ' +
+                        #          'Existing values are: {}. ' +
+                        #          'Streamed values are: {}, {}, {}').format(
+                        #             key_property,
+                        #             json_schema.get_type(current_table_schema['schema']['properties'][key_property]),
+                        #             json_schema.get_type(stream_buffer.schema['properties'][key_property]),
+                        #             self.json_schema_to_sql_type(
+                        #                 current_table_schema['schema']['properties'][key_property]),
+                        #             self.json_schema_to_sql_type(stream_buffer.schema['properties'][key_property])
+                        #         ))
 
                 target_table_version = current_table_version or stream_buffer.max_version
 

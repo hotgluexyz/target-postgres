@@ -25,6 +25,11 @@ def main(target):
     """
     config = utils.parse_args([]).config
     input_stream = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+    # Enable for debugging locally
+    # with open("data.singer", "rb") as file:
+    #     binary_data = file.read()
+    # input_stream = io.TextIOWrapper(io.BytesIO(binary_data), encoding='utf-8')
+    # input_stream = input_stream.readlines()  
     stream_to_target(input_stream, target, config=config)
 
     return None

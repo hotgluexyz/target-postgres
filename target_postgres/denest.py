@@ -1,6 +1,7 @@
 from copy import deepcopy
 
-from target_postgres import json_schema, singer
+from target_postgres import json_schema
+from target_postgres import singer_target as singer
 
 
 def to_table_batches(schema, key_properties, records):

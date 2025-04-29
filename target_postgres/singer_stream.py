@@ -6,7 +6,8 @@ import arrow
 from jsonschema import Draft4Validator, FormatChecker
 from jsonschema.exceptions import ValidationError
 
-from target_postgres import json_schema, singer
+from target_postgres import json_schema
+from target_postgres import singer_target as singer
 from target_postgres.exceptions import SingerStreamError
 
 
