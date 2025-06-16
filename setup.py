@@ -21,7 +21,8 @@ setup(
     install_requires=[
         'arrow==0.15.5',
         'psycopg2-binary==2.9.3',
-        'singer-python==5.9.0'
+        'singer-python==5.9.0',
+        'backoff==1.8.0'
     ],
     setup_requires=[
         "pytest-runner"
@@ -30,7 +31,7 @@ setup(
         'tests': [
             "chance==0.110",
             "Faker==4.0.3",
-            "pytest==5.4.1"
+            "pytest==6.2.5"
         ]},
     entry_points='''
       [console_scripts]
