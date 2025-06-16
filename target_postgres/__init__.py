@@ -1,8 +1,8 @@
 from singer import utils
-import psycopg2
 
-from target_postgres.postgres import MillisLoggingConnection, PostgresTarget
+from target_postgres.postgres import PostgresTarget
 from target_postgres import target_tools
+from target_postgres.postgres_client import PostgresClient
 
 REQUIRED_CONFIG_KEYS = [
     'postgres_database'
@@ -10,8 +10,7 @@ REQUIRED_CONFIG_KEYS = [
 
 
 def main(config, input_stream=None):
-    with psycopg2.connect(
-            connection_factory=MillisLoggingConnection,
+    with PostgresClient(
             host=config.get('postgres_host', 'localhost'),
             port=config.get('postgres_port', 5432),
             dbname=config.get('postgres_database'),

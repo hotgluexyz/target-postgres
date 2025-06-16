@@ -3,7 +3,7 @@ from copy import deepcopy
 
 import pytest
 
-from target_postgres import singer
+from target_postgres import singer_constants as singer
 from target_postgres.singer_stream import BufferedSingerStream, SingerStreamError, RAW_LINE_SIZE
 
 from utils.fixtures import CatStream, InvalidCatStream, CATS_SCHEMA

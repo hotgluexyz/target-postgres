@@ -3,7 +3,7 @@ import random
 import pytest
 from chance import chance
 
-from target_postgres import denest, json_schema, singer
+from target_postgres import denest, json_schema, singer_constants as singer
 
 
 def non_path_properties(table_batch):

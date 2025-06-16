@@ -6,7 +6,7 @@ import arrow
 from jsonschema import Draft4Validator, FormatChecker
 from jsonschema.exceptions import ValidationError
 
-from target_postgres import json_schema, singer
+from target_postgres import json_schema, singer_constants
 from target_postgres.exceptions import SingerStreamError
 
 
@@ -74,32 +74,32 @@ class BufferedSingerStream():
 
         properties = self.schema['properties']
 
-        if singer.RECEIVED_AT not in properties:
-            properties[singer.RECEIVED_AT] = {
+        if singer_constants.RECEIVED_AT not in properties:
+            properties[singer_constants.RECEIVED_AT] = {
                 'type': ['null', 'string'],
                 'format': 'date-time'
             }
 
-        if singer.SEQUENCE not in properties:
-            properties[singer.SEQUENCE] = {
+        if singer_constants.SEQUENCE not in properties:
+            properties[singer_constants.SEQUENCE] = {
                 'type': ['null', 'integer']
             }
 
-        if singer.TABLE_VERSION not in properties:
-            properties[singer.TABLE_VERSION] = {
+        if singer_constants.TABLE_VERSION not in properties:
+            properties[singer_constants.TABLE_VERSION] = {
                 'type': ['null', 'integer']
             }
 
-        if singer.BATCHED_AT not in properties:
-            properties[singer.BATCHED_AT] = {
+        if singer_constants.BATCHED_AT not in properties:
+            properties[singer_constants.BATCHED_AT] = {
                 'type': ['null', 'string'],
                 'format': 'date-time'
             }
 
         if len(self.key_properties) == 0:
             self.use_uuid_pk = True
-            self.key_properties = [singer.PK]
-            properties[singer.PK] = {
+            self.key_properties = [singer_constants.PK]
+            properties[singer_constants.PK] = {
                 'type': ['string']
             }
         else:
@@ -169,20 +169,20 @@ class BufferedSingerStream():
             record = record_message['record']
 
             if 'version' in record_message:
-                record[singer.TABLE_VERSION] = record_message['version']
+                record[singer_constants.TABLE_VERSION] = record_message['version']
 
-            if 'time_extracted' in record_message and record.get(singer.RECEIVED_AT) is None:
-                record[singer.RECEIVED_AT] = record_message['time_extracted']
+            if 'time_extracted' in record_message and record.get(singer_constants.RECEIVED_AT) is None:
+                record[singer_constants.RECEIVED_AT] = record_message['time_extracted']
 
-            if self.use_uuid_pk and record.get(singer.PK) is None:
-                record[singer.PK] = str(uuid.uuid4())
+            if self.use_uuid_pk and record.get(singer_constants.PK) is None:
+                record[singer_constants.PK] = str(uuid.uuid4())
 
-            record[singer.BATCHED_AT] = current_time
+            record[singer_constants.BATCHED_AT] = current_time
 
             if 'sequence' in record_message:
-                record[singer.SEQUENCE] = record_message['sequence']
+                record[singer_constants.SEQUENCE] = record_message['sequence']
             else:
-                record[singer.SEQUENCE] = arrow.get().timestamp
+                record[singer_constants.SEQUENCE] = arrow.get().timestamp
 
             records.append(record)
 

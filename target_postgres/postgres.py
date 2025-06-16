@@ -4,15 +4,15 @@ import io
 import json
 import logging
 import re
-import time
 import uuid
 import hashlib
 
 import arrow
 from psycopg2 import sql
-from psycopg2.extras import LoggingConnection, LoggingCursor
+import backoff
+import psycopg2
 
-from target_postgres import json_schema, singer
+from target_postgres import json_schema, singer_constants
 from target_postgres.exceptions import PostgresError
 from target_postgres.sql_base import SEPARATOR, SQLInterface
 
@@ -55,34 +55,7 @@ def _update_schema_1_to_2(table_metadata, table_path):
     return table_metadata
 
 
-class _MillisLoggingCursor(LoggingCursor):
-    """
-    An implementation of LoggingCursor which tracks duration of queries.
-    """
 
-    def execute(self, query, vars=None):
-        self.timestamp = time.monotonic()
-        return super(_MillisLoggingCursor, self).execute(query, vars)
-
-    def callproc(self, procname, vars=None):
-        self.timestamp = time.monotonic()
-        return super(_MillisLoggingCursor, self).callproc(procname, vars)
-
-
-class MillisLoggingConnection(LoggingConnection):
-    """
-    An implementation of LoggingConnection which tracks duration of queries.
-    """
-
-    def filter(self, msg, curs):
-        return "MillisLoggingConnection: {} millis spent executing: {}".format(
-            int((time.monotonic() - curs.timestamp) * 1000),
-            msg
-        )
-
-    def cursor(self, *args, **kwargs):
-        kwargs.setdefault('cursor_factory', _MillisLoggingCursor)
-        return LoggingConnection.cursor(self, *args, **kwargs)
 
 
 
@@ -114,12 +87,6 @@ class PostgresTarget(SQLInterface):
         if logging_level:
             level = logging.getLevelName(logging_level)
             self.LOGGER.setLevel(level)
-
-        try:
-            connection.initialize(self.LOGGER)
-            self.LOGGER.debug('PostgresTarget set to log all queries.')
-        except AttributeError:
-            self.LOGGER.debug('PostgresTarget disabling logging all queries.')
 
         self.conn = connection
         self.postgres_schema = postgres_schema
@@ -225,6 +192,10 @@ class PostgresTarget(SQLInterface):
             if table_path:
                 self.table_mapping_cache[tuple(table_path)] = mapped_name
 
+    @backoff.on_exception(backoff.expo,
+                        (psycopg2.InterfaceError, psycopg2.OperationalError),
+                        max_tries=5,
+                        max_time=300)
     def write_batch(self, stream_buffer):
         if not self.persist_empty_tables and stream_buffer.count == 0:
             return None
@@ -302,6 +273,12 @@ class PostgresTarget(SQLInterface):
                 cur.execute('COMMIT;')
 
                 return written_batches_details
+            except psycopg2.InterfaceError as ex:
+                self.LOGGER.error('InterfaceError: {}'.format(ex))
+                raise
+            except psycopg2.OperationalError as ex:
+                self.LOGGER.error('OperationalError: {}'.format(ex))
+                raise
             except Exception as ex:
                 cur.execute('ROLLBACK;')
                 message = 'Exception writing records'
@@ -470,14 +447,14 @@ class PostgresTarget(SQLInterface):
         cxt_where = sql.SQL(' AND ').join(cxt_where_list)
 
         sequence_join = sql.SQL(' AND "dedupped".{} >= {}.{}').format(
-            sql.Identifier(singer.SEQUENCE),
+            sql.Identifier(singer_constants.SEQUENCE),
             full_table_name,
-            sql.Identifier(singer.SEQUENCE))
+            sql.Identifier(singer_constants.SEQUENCE))
 
         distinct_order_by = sql.SQL(' ORDER BY {}, {}.{} DESC').format(
             pk_temp_select,
             full_temp_table_name,
-            sql.Identifier(singer.SEQUENCE))
+            sql.Identifier(singer_constants.SEQUENCE))
 
         if len(subkeys) > 0:
             pk_temp_subkey_select_list = []
@@ -489,7 +466,7 @@ class PostgresTarget(SQLInterface):
             insert_distinct_order_by = sql.SQL(' ORDER BY {}, {}.{} DESC').format(
                 insert_distinct_on,
                 full_temp_table_name,
-                sql.Identifier(singer.SEQUENCE))
+                sql.Identifier(singer_constants.SEQUENCE))
         else:
             insert_distinct_on = pk_temp_select
             insert_distinct_order_by = distinct_order_by
@@ -562,7 +539,7 @@ class PostgresTarget(SQLInterface):
             sql.Literal(RESERVED_NULL_DEFAULT))
         cur.copy_expert(copy, csv_rows)
 
-        pattern = re.compile(singer.LEVEL_FMT.format('[0-9]+'))
+        pattern = re.compile(singer_constants.LEVEL_FMT.format('[0-9]+'))
         subkeys = list(filter(lambda header: re.match(pattern, header) is not None, columns))
 
         canonicalized_key_properties = [self.fetch_column_from_path((key_property,), remote_schema)[0]
