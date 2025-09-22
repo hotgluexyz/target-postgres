@@ -551,7 +551,7 @@ class PostgresTarget(SQLInterface):
             datetime_str = udatetime.to_string(udatetime.from_string(value))
             return datetime_str[:24] + datetime_str[26:]
         except Exception as e:
-            self.LOGGER.info(f'Error serializing datetime value: {value} with udatetime. Falling back to arrow.')
+            # fall back to arrow in case udatetime couldn't parse the date
             return arrow.get(value).format('YYYY-MM-DD HH:mm:ss.SSSSZZ')
 
     def persist_csv_rows(self,
