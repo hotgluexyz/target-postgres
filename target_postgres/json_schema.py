@@ -2,6 +2,7 @@ from copy import deepcopy
 import decimal
 import json
 import re
+import ujson
 
 from jsonschema import Draft4Validator
 from jsonschema.exceptions import SchemaError
@@ -52,7 +53,7 @@ def get_type(schema):
     if isinstance(t, str):
         return [t]
 
-    return deepcopy(t)
+    return ujson.loads(ujson.dumps(t))
 
 
 def simple_type(schema):

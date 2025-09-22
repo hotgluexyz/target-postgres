@@ -15,6 +15,7 @@
 from copy import deepcopy
 import time
 
+import ujson
 import singer
 import singer.metrics as metrics
 
@@ -727,7 +728,7 @@ class SQLInterface:
         paths = streamed_schema['schema']['properties'].keys()
         for record in records:
 
-            row = deepcopy(default_row)
+            row = ujson.loads(ujson.dumps(default_row))
 
             for path in paths:
                 json_schema_string_type, value = record.get(path, (None, None))
