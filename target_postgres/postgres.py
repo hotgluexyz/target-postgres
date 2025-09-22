@@ -9,6 +9,7 @@ import uuid
 import hashlib
 
 import arrow
+import udatetime
 from psycopg2 import sql
 from psycopg2.extras import LoggingConnection, LoggingCursor
 
@@ -546,7 +547,12 @@ class PostgresTarget(SQLInterface):
         return value
 
     def serialize_table_record_datetime_value(self, remote_schema, streamed_schema, field, value):
-        return arrow.get(value).format('YYYY-MM-DD HH:mm:ss.SSSSZZ')
+        try:
+            datetime_str = udatetime.to_string(udatetime.from_string(value))
+            return datetime_str[:24] + datetime_str[26:]
+        except Exception as e:
+            self.LOGGER.info(f'Error serializing datetime value: {value} with udatetime. Falling back to arrow.')
+            return arrow.get(value).format('YYYY-MM-DD HH:mm:ss.SSSSZZ')
 
     def persist_csv_rows(self,
                          cur,
