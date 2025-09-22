@@ -726,6 +726,8 @@ class SQLInterface:
         default_row = dict([(field, NULL_DEFAULT) for field in remote_fields])
 
         paths = streamed_schema['schema']['properties'].keys()
+        field_names_cache = {}
+        
         for record in records:
 
             row = ujson.loads(ujson.dumps(default_row))
@@ -748,17 +750,23 @@ class SQLInterface:
                         and value is not None:
                     value = self.serialize_table_record_datetime_value(remote_schema, streamed_schema, path,
                                                                        value)
+                    field_cache_key = f"{path}_datetime_format"
                     value_json_schema = {'type': json_schema.STRING,
                                          'format': json_schema.DATE_TIME_FORMAT}
                 else:
+                    field_cache_key = f"{path}_type"
                     value_json_schema = {'type': json_schema_string_type}
 
                 ## Serialize NULL default value
                 value = self.serialize_table_record_null_value(remote_schema, streamed_schema, path, value)
 
-                field_name = self._serialize_table_record_field_name(remote_schema,
+                if field_cache_key in field_names_cache:
+                    field_name = field_names_cache[field_cache_key]
+                else:
+                    field_name = self._serialize_table_record_field_name(remote_schema,
                                                                      path,
                                                                      value_json_schema)
+                    field_names_cache[field_cache_key] = field_name
 
                 ## `field_name` is unset
                 if row[field_name] == NULL_DEFAULT:
