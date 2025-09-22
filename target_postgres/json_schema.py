@@ -581,7 +581,7 @@ def _type_shorthand(type_s):
 
 
 def shorthand(schema):
-    t = deepcopy(get_type(schema))
+    t = ujson.loads(ujson.dumps(get_type(schema)))
 
     if 'format' in schema and 'date-time' == schema['format'] and STRING in t:
         t.remove(STRING)
