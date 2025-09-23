@@ -5,6 +5,7 @@ import pkg_resources
 import sys
 import threading
 import decimal
+import ujson
 
 import singer
 from singer import utils, metadata, metrics
@@ -91,8 +92,8 @@ def _report_invalid_records(streams):
 def _line_handler(state_tracker, target, invalid_records_detect, invalid_records_threshold, max_batch_rows,
                   max_batch_size, line):
     try:
-        line_data = json.loads(line, parse_float=decimal.Decimal)
-    except json.decoder.JSONDecodeError:
+        line_data = ujson.loads(line)
+    except ujson.JSONDecodeError:
         LOGGER.error("Unable to parse JSON: {}".format(line))
         raise
 

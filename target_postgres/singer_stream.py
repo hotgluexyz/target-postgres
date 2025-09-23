@@ -1,5 +1,5 @@
 from copy import deepcopy
-import json
+import ujson
 import uuid
 
 import arrow
@@ -23,7 +23,7 @@ RAW_LINE_SIZE = '__raw_line_size'
 
 
 def get_line_size(line_data):
-    return line_data.get(RAW_LINE_SIZE) or len(json.dumps(line_data))
+    return line_data.get(RAW_LINE_SIZE) or len(ujson.dumps(line_data))
 
 
 class BufferedSingerStream():
