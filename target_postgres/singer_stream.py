@@ -36,6 +36,7 @@ class BufferedSingerStream():
                  invalid_records_threshold=None,
                  max_rows=200000,
                  max_buffer_size=104857600,  # 100MB
+                 skip_records_validation=False,
                  **kwargs):
         """
         :param invalid_records_detect: Defaults to True when value is None
@@ -53,6 +54,8 @@ class BufferedSingerStream():
 
         self.invalid_records_detect = invalid_records_detect
         self.invalid_records_threshold = invalid_records_threshold
+
+        self.skip_records_validation = skip_records_validation
 
         if self.invalid_records_detect is None:
             self.invalid_records_detect = True
@@ -142,7 +145,8 @@ class BufferedSingerStream():
             return None
 
         try:
-            self.validator.validate(record_message['record'])
+            if not self.skip_records_validation:
+                self.validator.validate(record_message['record'])
         except ValidationError as error:
             add_record = False
             self.invalid_records.append((error, record_message))

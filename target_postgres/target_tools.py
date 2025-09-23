@@ -53,6 +53,7 @@ def stream_to_target(stream, target, config={}):
         max_batch_rows = config.get('max_batch_rows', 200000)
         max_batch_size = config.get('max_batch_size', 104857600)  # 100MB
         batch_detection_threshold = config.get('batch_detection_threshold', max(max_batch_rows / 40, 50))
+        skip_records_validation = config.get('skip_records_validation', False)
 
         line_count = 0
         for line in stream:
@@ -62,7 +63,8 @@ def stream_to_target(stream, target, config={}):
                           invalid_records_threshold,
                           max_batch_rows,
                           max_batch_size,
-                          line
+                          line,
+                          skip_records_validation
                           )
             if line_count > 0 and line_count % batch_detection_threshold == 0:
                 state_tracker.flush_streams()
@@ -90,7 +92,7 @@ def _report_invalid_records(streams):
 
 
 def _line_handler(state_tracker, target, invalid_records_detect, invalid_records_threshold, max_batch_rows,
-                  max_batch_size, line):
+                  max_batch_size, line, skip_records_validation):
     try:
         line_data = ujson.loads(line)
     except ujson.JSONDecodeError:
@@ -125,7 +127,8 @@ def _line_handler(state_tracker, target, invalid_records_detect, invalid_records
                                                    schema,
                                                    key_properties,
                                                    invalid_records_detect=invalid_records_detect,
-                                                   invalid_records_threshold=invalid_records_threshold)
+                                                   invalid_records_threshold=invalid_records_threshold,
+                                                   skip_records_validation=skip_records_validation)
             if max_batch_rows:
                 buffered_stream.max_rows = max_batch_rows
             if max_batch_size:
