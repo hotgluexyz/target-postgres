@@ -549,6 +549,7 @@ class PostgresTarget(SQLInterface):
     def serialize_table_record_datetime_value(self, remote_schema, streamed_schema, field, value):
         try:
             datetime_str = udatetime.to_string(udatetime.from_string(value))
+            # remove some characters to make it 'YYYY-MM-DD HH:mm:ss.SSSSZZ'
             return datetime_str[:24] + datetime_str[26:]
         except Exception as e:
             # fall back to arrow in case udatetime couldn't parse the date
