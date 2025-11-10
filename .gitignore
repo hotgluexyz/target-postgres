@@ -96,7 +96,9 @@ ENV/
 
 # Singer files
 *.txt
+.secrets/
 
+.venv/
 /venv--*
 /venv
 /tests/migrations/artifacts
