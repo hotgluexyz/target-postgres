@@ -23,11 +23,20 @@ class InvalidValidationOperationException(Exception):
 
 
 class TransformStream:
-    def __init__(self, fun):
-        self.fun = fun
+    def __init__(self, temp_file_handler):
+        self.temp_file_handler = temp_file_handler
+
+    def _readline(self):
+        for row in self.temp_file_handler:
+            # data for ducplicated records is replaced with '\n'
+            # so we wanna skip that and don't send unnecessary data to postgres
+            if row == b'\n':
+                continue
+            yield row
+        yield ''
 
     def read(self, *args, **kwargs):
-        return self.fun()
+        return next(self._readline())
 
 
 def column_type(schema_property):
@@ -533,25 +542,6 @@ class PostgresSink:
                    self.primary_key_condition(table))
 
 
-    def transform(self):
-        try:
-            while True:
-                row = self.temp_file_handler.readline()
-                
-                # in case of last line return empty string
-                if row == '':
-                    return ''
-
-                # in case of '\n' it means it was a duplicated record that was replaced with '\n'
-                # skip it
-                if row == b'\n':
-                    continue
-                
-                return row
-        except StopIteration:
-            return ''
-
-
     def flush_csv_to_db(self):
         stream_schema_message = self.stream_schema_message
         stream_name = stream_schema_message['stream']
@@ -576,7 +566,7 @@ class PostgresSink:
                 LOGGER.debug(copy_sql)
 
                 self.temp_file_handler.seek(0)
-                csv_rows = TransformStream(self.transform)
+                csv_rows = TransformStream(self.temp_file_handler)
                 cur.copy_expert(copy_sql, csv_rows)
 
                 if len(self.stream_schema_message['key_properties']) > 0:
