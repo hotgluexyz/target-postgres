@@ -120,9 +120,10 @@ def process_singer_messages(config, singer_messages):
             if "properties" not in singer_message["schema"]:
                 raise Exception(f"'schema.properties' key missing - {singer_message}")
 
-            if config.get("primary_key_required", False) and len(o["key_properties"]) == 0:
-                LOGGER.critical("Primary key is set to mandatory but not defined in the [%s] stream", stream)
-                raise Exception("key_properties field is required")
+            if config.get("primary_key_required", False) and len(singer_message["key_properties"]) == 0:
+                error = f"Primary key is set to mandatory but not defined for the '{stream}' stream"
+                LOGGER.critical(error)
+                raise Exception(error)
 
             if not config.get("insertion_method_tables"):
                 config["insertion_method_tables"] = []
