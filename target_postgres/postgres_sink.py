@@ -440,7 +440,7 @@ class PostgresSink:
     def record_to_csv_line(self, record):
         return ','.join(
             [
-                ujson.dumps(record[name], ensure_ascii=False)
+                ujson.dumps(record[name], ensure_ascii=False, escape_forward_slashes=False)
                 if name in record and (record[name] == 0 or record[name]) else ''
                 for name in self.stream_schema_message["schema"]["properties"]
             ]
