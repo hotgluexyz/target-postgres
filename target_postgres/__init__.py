@@ -129,7 +129,7 @@ def process_singer_messages(config, singer_messages):
                 config["insertion_method_tables"] = []
     
             if stream in streams_to_sync:
-                if streams_to_sync[stream].schema_message == singer_message:
+                if streams_to_sync[stream][-1].stream_schema_message == singer_message:
                     LOGGER.info(f"Schema message already processed for stream {stream}")
                     continue
 
