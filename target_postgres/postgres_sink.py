@@ -417,7 +417,7 @@ class PostgresSink:
                     f"Record does not pass schema validation. RECORD: {record}") from ex
 
         for jsonb_column in self.jsonb_columns:
-            if jsonb_column in record:
+            if jsonb_column in record and record[jsonb_column]:
                 record[jsonb_column] = ujson.dumps(record[jsonb_column])
 
         self.add_record_to_csv(record)
