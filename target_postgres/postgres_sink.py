@@ -136,10 +136,13 @@ class PostgresSink:
         #               "my_tap_stream_id": {
         #                   "target_schema": "my_postgres_schema",
         #                   "target_schema_select_permissions": [ "role_with_select_privs" ],
-        #                   "indices": ["column_1", "column_2s"]
+        #                   "indices": {
+        #                       "table_one": ["column_1", "column_2"],
+        #                       "table_two": ["column_3", "column_4"]
+        #                   }
         #               }
         #           }
-        config_default_target_schema = self.config.get('default_target_schema', '').strip()
+        config_default_target_schema = (self.config.get('default_target_schema', '') or '').strip()
         config_schema_mapping = self.config.get('schema_mapping', {})
 
         stream_name = stream_schema_message['stream']
@@ -158,7 +161,7 @@ class PostgresSink:
 
         if not self.schema_name:
             raise Exception("Target schema name not defined in config. Neither 'default_target_schema' (string)"
-                            "nor 'schema_mapping' (object) defines target schema for {} stream."
+                            "nor 'schema_mapping' (object) defines target schema for '{}' stream."
                             .format(stream_name))
 
         #  Define grantees
@@ -174,7 +177,11 @@ class PostgresSink:
         #               "schema_mapping": {
         #                   "my_tap_stream_id": {
         #                       "target_schema": "my_postgres_schema",
-        #                       "target_schema_select_permissions": [ "role_with_select_privs" ]
+        #                       "target_schema_select_permissions": [ "role_with_select_privs" ],
+        #                       "indices": {
+        #                           "table_one": ["column_1", "column_2"],
+        #                           "table_two": ["column_3", "column_4"]
+        #                       }
         #                   }
         #               }
         self.grantees = self.config.get('default_target_schema_select_permissions')
