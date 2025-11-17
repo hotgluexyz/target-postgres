@@ -9,10 +9,10 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='singer-target-postgres',
-    url='https://github.com/datamill-co/target-postgres',
-    author='datamill',
-    version="0.2.5",
+    name='hotglue-target-postgres',
+    url='https://github.com/hotgluexyz/target-postgres',
+    author='hotglue',
+    version="1.0.0",
     description='Singer.io target for loading data into postgres',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -35,7 +35,8 @@ setup(
         ]},
     entry_points='''
       [console_scripts]
-      target-postgres=target_postgres:cli
+      target-postgres-beta=target_postgres:main
+      target-postgres=target_postgres:main
     ''',
     packages=find_packages()
 )
