@@ -1,0 +1,2 @@
+{"type": "SCHEMA", "stream": "test_table_one", "schema": {"properties": {"c_pk": {"maximum": 2147483647, "type": ["null", "integer"]}, "c_varchar": {"type": ["null", "string"]}, "c_int": {"minimum": -2147483648, "maximum": 2147483647, "type": ["null", "integer"]}}, "type": "object"}, "key_properties": ["c_pk", "c_varchar"]}
+{"type": "RECORD", "stream": "test_table_one", "record": {"c_pk": 1, "c_varchar": "1", "c_int": 1}, "time_extracted": "2019-01-31T15:51:47.465408Z"}

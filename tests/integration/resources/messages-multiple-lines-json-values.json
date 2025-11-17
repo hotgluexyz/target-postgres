@@ -1,0 +1,4 @@
+{ "type": "SCHEMA", "stream": "test_table_one", "schema": { "properties": { "c_pk": { "maximum": 2147483647, "type": [ "null", "integer" ] }, "c_object": { "type": [ "null", "object" ] }, "c_array": { "type": [ "null", "array" ] } }, "type": "object" }, "key_properties": [ "c_pk" ] }
+{ "type": "RECORD", "stream": "test_table_one", "record": { "c_pk": 1, "c_object": {"a": 1, "b": 2, "c": {"d": 3}}, "c_array": [1, "2", {"e": 3}] }}
+{ "type": "RECORD", "stream": "test_table_one", "record": { "c_pk": 2, "c_object": {"b": 2, "f": null}, "c_array": [null, 5, 6] }}
+{ "type": "RECORD", "stream": "test_table_one", "record": { "c_pk": 3, "c_object": null, "c_array": null }}
