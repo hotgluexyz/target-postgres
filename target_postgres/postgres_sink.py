@@ -198,10 +198,10 @@ class PostgresSink:
 
 
     def close_csv_file(self):
-        if self.temp_file_handler:
+        if hasattr(self, 'temp_file_handler') and self.temp_file_handler:
             self.temp_file_handler.close()
         
-        if self.temp_file_name and os.path.exists(self.temp_file_name):
+        if hasattr(self, 'temp_file_name') and self.temp_file_name and os.path.exists(self.temp_file_name):
             LOGGER.info(f"Cleaning up temp file {self.temp_file_name}")
             os.remove(self.temp_file_name)
 
