@@ -42,13 +42,22 @@ def validate_config(config):
         raise Exception(f"Invalid configuration:\n   * {errors_str}")
 
 
-def flush_stream(stream_list: List[PostgresSink]) -> None:
-    for sink in stream_list:
-        sink.sync_schema_and_table()
-        sink.flush_csv_to_db()
+def flush_stream(sink_list: List[PostgresSink]) -> None:
+    number_of_sinks = len(sink_list)
+    for index, sink in enumerate(sink_list):
+        LOGGER.info(f"Flushing sink {index + 1} of {number_of_sinks}")
+        # only create indices for the stream if it's the last sink
+        create_indices = index == number_of_sinks - 1
+        sink.sync_table()
+        sink.flush_csv_to_db(create_indices=create_indices)
 
 
 def flush_streams(streams_dict: Dict[str, List[PostgresSink]], config: Dict[str, Any]) -> None:
+    # first sync all schemas synchronously
+    for sink_list in streams_dict.values():
+        for sink in sink_list:
+            sink.sync_schema()
+
     parallelism = config.get("parallelism", DEFAULT_PARALLELISM)
     max_parallelism = config.get("max_parallelism", DEFAULT_MAX_PARALLELISM)
 
@@ -66,8 +75,8 @@ def flush_streams(streams_dict: Dict[str, List[PostgresSink]], config: Dict[str,
 
     with parallel_backend('threading', n_jobs=parallelism):
         Parallel()(delayed(flush_stream)(
-            streams_list
-        ) for streams_list in streams_dict.values())
+            sink_list
+        ) for sink_list in streams_dict.values())
 
 
 def process_singer_messages(config, singer_messages):
@@ -95,7 +104,7 @@ def process_singer_messages(config, singer_messages):
                 raise Exception("Singer message is missing required key 'record': {}".format(line))
 
             if singer_message["stream"] not in streams_to_sync:
-                raise Exception("A record for stream {} was encountered before a corresponding schema message".format(singer_message["stream"]))
+                raise Exception("A record for stream '{}' was encountered before a corresponding schema message".format(singer_message["stream"]))
 
             stream_name = singer_message["stream"]
             # get last sink for the stream
@@ -139,7 +148,7 @@ def process_singer_messages(config, singer_messages):
             LOGGER.debug(f"Singer message: ACTIVATE_VERSION not implemented - {singer_message}")
 
         else:
-            raise Exception("Unknown message type {} in message {}"
+            raise Exception("Unknown message type '{}' in message {}"
                             .format(singer_message["type"], singer_message))
 
     LOGGER.info(f"Finished processing singer messages")

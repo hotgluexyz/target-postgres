@@ -228,13 +228,21 @@ class PostgresSink:
             return []
 
 
-    def sync_schema_and_table(self):
+    def sync_schema(self):
         stream_name = self.stream_schema_message['stream']
-        LOGGER.info(f"Syncing schema and table for stream {stream_name}")
+        LOGGER.info(f"Syncing schema for stream {stream_name}")
         with open_postgres_connection(self.config) as conn:
             self.create_schema_if_not_exists(conn)
-            self.sync_table(conn)
-        LOGGER.info(f"Done syncing schema and table for stream {stream_name}")
+        LOGGER.info(f"Done syncing schema for stream {stream_name}")
+
+
+    def sync_table(self):
+        stream_name = self.stream_schema_message['stream']
+        LOGGER.info(f"Syncing table for stream {stream_name}")
+        with open_postgres_connection(self.config) as conn:
+            self._sync_table(conn)
+        LOGGER.info(f"Done syncing table for stream {stream_name}")
+
 
     def create_schema_if_not_exists(self, conn):
         schema_name = self.schema_name
@@ -254,7 +262,7 @@ class PostgresSink:
             self.grant_privilege(conn, schema_name, self.grantees, self.grant_usage_on_schema)
 
 
-    def sync_table(self, conn):
+    def _sync_table(self, conn):
         stream_schema_message = self.stream_schema_message
         stream = stream_schema_message['stream']
         table_name = self.get_table_name(stream, without_schema=True)
@@ -542,7 +550,7 @@ class PostgresSink:
                    self.primary_key_condition(table))
 
 
-    def flush_csv_to_db(self):
+    def flush_csv_to_db(self, create_indices=True):
         stream_schema_message = self.stream_schema_message
         stream_name = stream_schema_message['stream']
         LOGGER.info(f"Flushing CSV to DB for stream {stream_name}")
@@ -588,7 +596,8 @@ class PostgresSink:
                                  ujson.dumps({'inserts': inserts, 'updates': updates, 'size_bytes': size_bytes}))
 
                 LOGGER.info(f"Done flushing CSV to DB for stream {stream_name}")
-                self.create_indices(connection)
+                if create_indices:
+                    self.create_indices(connection)
 
 
     def create_index(self, conn, stream, column):
