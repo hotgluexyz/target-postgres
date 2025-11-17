@@ -6,7 +6,7 @@ from collections import defaultdict
 from joblib import Parallel, delayed, parallel_backend
 from typing import Dict, List, Any
 
-from state import State
+from target_postgres.state import State
 from target_postgres.postgres_sink import PostgresSink
 from target_postgres.utils import get_logger, test_postgres_connection
 
@@ -54,6 +54,11 @@ def flush_stream(sink_list: List[PostgresSink]) -> None:
 
 
 def flush_streams(streams_dict: Dict[str, List[PostgresSink]], config: Dict[str, Any]) -> None:
+    n_streams_to_flush = len(streams_dict.keys())
+    if n_streams_to_flush == 0:
+        LOGGER.info(f"No streams to flush")
+        return
+
     # first sync all schemas synchronously
     for sink_list in streams_dict.values():
         for sink in sink_list:
@@ -68,7 +73,6 @@ def flush_streams(streams_dict: Dict[str, List[PostgresSink]], config: Dict[str,
     # of threads where the number of threads is the number of streams that need to
     # be loaded but it's not greater than the value of max_parallelism
     if parallelism == 0:
-        n_streams_to_flush = len(streams_dict.keys())
         if n_streams_to_flush > max_parallelism:
             parallelism = max_parallelism
         else:
