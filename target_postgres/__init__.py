@@ -6,6 +6,7 @@ from collections import defaultdict
 from joblib import Parallel, delayed, parallel_backend
 from typing import Dict, List, Any
 
+from state import State
 from target_postgres.postgres_sink import PostgresSink
 from target_postgres.utils import get_logger, test_postgres_connection
 
@@ -79,9 +80,20 @@ def flush_streams(streams_dict: Dict[str, List[PostgresSink]], config: Dict[str,
         ) for sink_list in streams_dict.values())
 
 
+def emit_state(state):
+    """Emit state message to standard output then it can be
+    consumed by other components"""
+    if state is not None:
+        line = ujson.dumps(state)
+        LOGGER.debug('Emitting state %s', line)
+        sys.stdout.write("{}\n".format(line))
+        sys.stdout.flush()
+
+
 def process_singer_messages(config, singer_messages):
     """Process singer messages"""
     LOGGER.info(f"Processing singer messages")
+    state = State()
 
     streams_to_sync = defaultdict[str, List[PostgresSink]](list)
     
@@ -112,8 +124,9 @@ def process_singer_messages(config, singer_messages):
             stream_sink.process_record_message(singer_message["record"])
 
         elif message_type == "STATE":
-            # We don't implement state management because we flush all data at once
-            LOGGER.debug('Singer message: STATE not implemented - {singer_message}')
+            if "value" not in singer_message:
+                raise Exception(f"'value' key missing from STATE message - {singer_message}")
+            state.merge(singer_message["value"])
 
         elif message_type == "SCHEMA":
             if "stream" not in singer_message:
@@ -157,6 +170,10 @@ def process_singer_messages(config, singer_messages):
     flush_streams(streams_to_sync, config)
 
     LOGGER.info(f"Finished syncing data with DB")
+
+    emit_state(state)
+    LOGGER.info(f"Target done syncing data")
+
 
 
 def main():

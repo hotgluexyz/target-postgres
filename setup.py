@@ -22,10 +22,8 @@ setup(
         'psycopg2-binary==2.9.11',
         'joblib==1.5.2',
         'ujson==5.11.0',
-        'fastjsonschema==2.21.2'
-    ],
-    setup_requires=[
-        "pytest-runner"
+        'fastjsonschema==2.21.2',
+        'singer-python==6.3.0'
     ],
     extras_require={
         'tests': [
