@@ -22,7 +22,7 @@ setup(
         'psycopg2-binary==2.9.11',
         'joblib==1.5.2',
         'ujson==5.11.0',
-        'jsonschema[format]==4.25.1'
+        'fastjsonschema==2.21.2'
     ],
     setup_requires=[
         "pytest-runner"

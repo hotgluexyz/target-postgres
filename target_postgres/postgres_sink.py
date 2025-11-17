@@ -6,7 +6,7 @@ import time
 
 from typing import Tuple
 from tempfile import mkstemp
-from jsonschema import Draft7Validator, FormatChecker
+import fastjsonschema
 
 from target_postgres.utils import get_logger, float_to_decimal, open_postgres_connection
 
@@ -105,9 +105,16 @@ class PostgresSink:
         self.key_properties = self.stream_schema_message.get("key_properties", [])
         self.jsonb_columns = get_jsonb_columns(self.stream_schema_message["schema"]["properties"].items())
 
-        self.validator = Draft7Validator(self.stream_schema_message["schema"], format_checker=FormatChecker())
+        self.validator = None
         self.should_validate_records = config.get('validate_records', False)
-        
+
+        if self.should_validate_records:
+            try:
+                self.validator = fastjsonschema.compile(self.stream_schema_message["schema"])
+            except Exception as ex:
+                LOGGER.error(f"Invalid JSON schema for stream {stream_name}: {ex}")
+                raise
+
         self.schema_name = None
         self.grantees = None
         self.indices = []
@@ -414,7 +421,7 @@ class PostgresSink:
         # Validate record
         if self.should_validate_records:
             try:
-                self.validator.validate(float_to_decimal(record))
+                self.validator(float_to_decimal(record))
             except Exception as ex:
                 if type(ex).__name__ == "InvalidOperation":
                     raise InvalidValidationOperationException(
