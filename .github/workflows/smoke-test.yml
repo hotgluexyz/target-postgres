@@ -21,7 +21,7 @@ jobs:
 
 
       - name: Start PG test container
-        run: docker-compose up -d --build db
+        run: docker compose up -d --build db
 
 
       - name: Set up Python
@@ -51,7 +51,7 @@ jobs:
 
 
       - name: Shutdown PG test container
-        run: docker-compose down
+        run: docker compose down
 
 
       - name: Output test results
