@@ -216,7 +216,9 @@ class PostgresSink:
         return csv_file, file_handler
 
 
-    def get_table_name(self, table_name, is_temporary=False, without_schema=False):
+    def get_table_name(self, stream_name, is_temporary=False, without_schema=False):
+        stream_dict = self.stream_name_to_dict(stream_name)
+        table_name = stream_dict['table_name']
         pg_table_name = table_name.replace('.', '_').replace('-', '_').lower()
 
         if is_temporary:

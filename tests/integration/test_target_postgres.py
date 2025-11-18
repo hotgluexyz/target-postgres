@@ -235,7 +235,7 @@ class TestIntegration(unittest.TestCase):
         schemas = test_utils.get_schemas(self.conn)
         self.assertEqual(schemas, {"test_schema_one"})
 
-        table_one = test_utils.query_db(self.conn, "SELECT * FROM test_schema_one.tap_mysql_test_test_table_one ORDER BY c_pk")
+        table_one = test_utils.query_db(self.conn, "SELECT * FROM test_schema_one.test_table_one ORDER BY c_pk")
         expected_table_one = [
             {'c_int': 1, 'c_pk': 1, 'c_varchar': '1'}
         ]
@@ -243,7 +243,7 @@ class TestIntegration(unittest.TestCase):
 
     def test_indices_from_schema_mapping(self):
         """Check that the indices from schema mapping were created"""
-        indices = test_utils.get_table_indexes(self.conn, "test_schema_one.tap_mysql_test_test_table_one")
+        indices = test_utils.get_table_indexes(self.conn, "test_schema_one.test_table_one")
         self.assertEqual(indices, [])
 
         self.config["default_target_schema"] = None
@@ -259,12 +259,12 @@ class TestIntegration(unittest.TestCase):
         tap_lines = test_utils.get_test_tap_lines("messages-schema-mapping.json")
         target_postgres.process_singer_messages(self.config, tap_lines)
 
-        indices = test_utils.get_table_indexes(self.conn, "test_schema_one.tap_mysql_test_test_table_one")
+        indices = test_utils.get_table_indexes(self.conn, "test_schema_one.test_table_one")
 
         expected_indices = [
             {
-                "indexname": "i_tap_mysql_test_test_table_one_c_varchar",
-                "indexdef": "CREATE INDEX i_tap_mysql_test_test_table_one_c_varchar ON test_schema_one.tap_mysql_test_test_table_one USING btree (c_varchar)"
+                "indexname": "i_test_table_one_c_varchar",
+                "indexdef": "CREATE INDEX i_test_table_one_c_varchar ON test_schema_one.test_table_one USING btree (c_varchar)"
             }
         ]
 
@@ -272,7 +272,7 @@ class TestIntegration(unittest.TestCase):
 
     def test_indices_from_schema_mapping_2(self):
         """Check that the indices from schema mapping were created"""
-        indices = test_utils.get_table_indexes(self.conn, "test_schema_one.tap_mysql_test_test_table_one")
+        indices = test_utils.get_table_indexes(self.conn, "test_schema_one.test_table_one")
         self.assertEqual(indices, [])
 
         self.config["default_target_schema"] = None
@@ -288,16 +288,16 @@ class TestIntegration(unittest.TestCase):
         tap_lines = test_utils.get_test_tap_lines("messages-schema-mapping.json")
         target_postgres.process_singer_messages(self.config, tap_lines)
 
-        indices = test_utils.get_table_indexes(self.conn, "test_schema_one.tap_mysql_test_test_table_one")
+        indices = test_utils.get_table_indexes(self.conn, "test_schema_one.test_table_one")
 
         expected_indices = [
             {
-                "indexname": "i_tap_mysql_test_test_table_one_c_int",
-                "indexdef": "CREATE INDEX i_tap_mysql_test_test_table_one_c_int ON test_schema_one.tap_mysql_test_test_table_one USING btree (c_int)"
+                "indexname": "i_test_table_one_c_int",
+                "indexdef": "CREATE INDEX i_test_table_one_c_int ON test_schema_one.test_table_one USING btree (c_int)"
             },
             {
-                "indexname": "i_tap_mysql_test_test_table_one_c_varchar",
-                "indexdef": "CREATE INDEX i_tap_mysql_test_test_table_one_c_varchar ON test_schema_one.tap_mysql_test_test_table_one USING btree (c_varchar)"
+                "indexname": "i_test_table_one_c_varchar",
+                "indexdef": "CREATE INDEX i_test_table_one_c_varchar ON test_schema_one.test_table_one USING btree (c_varchar)"
             }
         ]
 
