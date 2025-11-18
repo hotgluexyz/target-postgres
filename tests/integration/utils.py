@@ -57,7 +57,8 @@ def get_table_indexes(conn, table_name):
         SELECT
             indexname, indexdef
         FROM pg_indexes
-        WHERE concat(schemaname, '.', tablename) = %s;
+        WHERE concat(schemaname, '.', tablename) = %s
+        ORDER BY indexname;
     """, (table_name,))
     return indexes
 

@@ -292,12 +292,12 @@ class TestIntegration(unittest.TestCase):
 
         expected_indices = [
             {
-                "indexname": "i_tap_mysql_test_test_table_one_c_varchar",
-                "indexdef": "CREATE INDEX i_tap_mysql_test_test_table_one_c_varchar ON test_schema_one.tap_mysql_test_test_table_one USING btree (c_varchar)"
-            },
-            {
                 "indexname": "i_tap_mysql_test_test_table_one_c_int",
                 "indexdef": "CREATE INDEX i_tap_mysql_test_test_table_one_c_int ON test_schema_one.tap_mysql_test_test_table_one USING btree (c_int)"
+            },
+            {
+                "indexname": "i_tap_mysql_test_test_table_one_c_varchar",
+                "indexdef": "CREATE INDEX i_tap_mysql_test_test_table_one_c_varchar ON test_schema_one.tap_mysql_test_test_table_one USING btree (c_varchar)"
             }
         ]
 
