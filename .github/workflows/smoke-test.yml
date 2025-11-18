@@ -37,8 +37,9 @@ jobs:
           pip install ".[tests]"
 
 
-      - name: Setup and run tests
+      - name: Run tests
         run: |
+          source .venv/bin/activate
           OUTPUT_FILE="smoke_test_output.log"
           echo "OUTPUT_FILE=$OUTPUT_FILE" >> $GITHUB_ENV
 
