@@ -38,6 +38,7 @@ jobs:
 
 
       - name: Run tests
+        env: LOGGING_CONF_FILE: target_postgres/logging.conf
         run: |
           source .venv/bin/activate
           OUTPUT_FILE="smoke_test_output.log"
