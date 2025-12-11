@@ -34,5 +34,10 @@ setup(
       target-postgres-beta=target_postgres:main
       target-postgres=target_postgres:main
     ''',
-    packages=find_packages()
+    packages=find_packages(),
+    package_data = {
+        'target_postgres': [
+            'logging.conf'
+            ]
+    },
 )
