@@ -297,7 +297,7 @@ class PostgresSink:
             LOGGER.info("Table '%s' does not exist. Creating... %s", table_name, query)
             self.query(conn, query)
 
-            self.grant_privilege(conn, self.schema_name, self.grantees, self.grant_select_on_all_tables_in_schema)
+            self.grant_privilege(conn, f"{self.schema_name}.{table_name}", self.grantees, self.grant_select_on_table)
         else:
             LOGGER.info("Table '%s' exists", table_name)
             # Log existing column types before updating
@@ -408,17 +408,14 @@ class PostgresSink:
         self.query(conn, query)
 
 
-    def grant_select_on_all_tables_in_schema(self, conn, schema_name, grantee):
-        query = "GRANT SELECT ON ALL TABLES IN SCHEMA {} TO GROUP {}".format(schema_name, grantee)
-        LOGGER.info("Granting SELECT ON ALL TABLES privilege on '%s' schema to '%s'... %s",
-                         schema_name,
-                         grantee,
-                         query)
+    def grant_select_on_table(self, conn, table_name, grantee):
+        query = "GRANT SELECT ON TABLE {} TO GROUP {}".format(table_name, grantee)
+        LOGGER.info("Granting SELECT ON TABLE privilege on '%s' to '%s'... %s", table_name, grantee, query)
         self.query(conn, query)
 
 
     @classmethod
-    def grant_privilege(cls, conn,schema, grantees, grant_method):
+    def grant_privilege(cls, conn, schema, grantees, grant_method):
         if isinstance(grantees, list):
             for grantee in grantees:
                 grant_method(conn, schema, grantee)
