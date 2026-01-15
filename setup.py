@@ -23,7 +23,8 @@ setup(
         'joblib==1.5.2',
         'ujson==5.11.0',
         'fastjsonschema==2.21.2',
-        'singer-python==6.3.0'
+        'singer-python==6.3.0',
+        'inflection==0.5.1'
     ],
     extras_require={
         'tests': [
