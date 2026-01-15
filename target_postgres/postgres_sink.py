@@ -3,6 +3,9 @@ import ujson
 import uuid
 import psycopg2.extras
 import time
+import re
+import functools
+import inflection
 
 from typing import Tuple
 from tempfile import mkstemp
@@ -76,7 +79,10 @@ def column_type(schema_property):
     return col_type
 
 
+@functools.cache
 def safe_column_name(name):
+    if len(name) >= 63:
+        name = re.sub(r'[a-z]', '', inflection.camelize(name))
     return '"{}"'.format(name).lower()
 
 
