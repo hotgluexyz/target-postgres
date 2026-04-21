@@ -1,0 +1,1 @@
+{"stream": "test_table_one", "schema": {"properties": {"c_pk": {"maximum": 2147483647, "type": ["null", "integer"]}, "c_varchar": {"type": ["null", "string"]}, "c_int": {"minimum": -2147483648, "maximum": 2147483647, "type": ["null", "integer"]}}, "type": "object"}, "key_properties": ["c_pk"]}
