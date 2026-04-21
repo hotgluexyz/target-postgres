@@ -154,7 +154,7 @@ class TestIntegration(unittest.TestCase):
         self.config["primary_key_required"] = False
         tap_lines = test_utils.get_test_tap_lines("messages-no-primary-key.json")
         target_postgres.process_singer_messages(self.config, tap_lines)
-        table_one = test_utils.query_db(self.conn, f"SELECT * FROM {self.config['default_target_schema']}.test_table_one ORDER BY c_pk")
+        table_one = test_utils.query_db(self.conn, f"SELECT * FROM {self.config['postgres_schema']}.test_table_one ORDER BY c_pk")
         expected_table_one = [
             {'c_int': 1, 'c_pk': 1, 'c_varchar': '1'}
         ]
@@ -165,7 +165,7 @@ class TestIntegration(unittest.TestCase):
         self.config["primary_key_required"] = False
         tap_lines = test_utils.get_test_tap_lines("messages-with-primary-key.json")
         target_postgres.process_singer_messages(self.config, tap_lines)
-        table_one = test_utils.query_db(self.conn, f"SELECT * FROM {self.config['default_target_schema']}.test_table_one ORDER BY c_pk")
+        table_one = test_utils.query_db(self.conn, f"SELECT * FROM {self.config['postgres_schema']}.test_table_one ORDER BY c_pk")
         expected_table_one = [
             {'c_int': 1, 'c_pk': 1, 'c_varchar': '1'}
         ]
@@ -176,7 +176,7 @@ class TestIntegration(unittest.TestCase):
         self.config["primary_key_required"] = True
         tap_lines = test_utils.get_test_tap_lines("messages-with-primary-key.json")
         target_postgres.process_singer_messages(self.config, tap_lines)
-        table_one = test_utils.query_db(self.conn, f"SELECT * FROM {self.config['default_target_schema']}.test_table_one ORDER BY c_pk")
+        table_one = test_utils.query_db(self.conn, f"SELECT * FROM {self.config['postgres_schema']}.test_table_one ORDER BY c_pk")
         expected_table_one = [
             {'c_int': 1, 'c_pk': 1, 'c_varchar': '1'}
         ]
@@ -193,21 +193,21 @@ class TestIntegration(unittest.TestCase):
             str(cm.exception)
         )
 
-    def test_no_default_target_schema_and_no_schema_mapping(self):
-        """No default target schema and no schema mapping should raise an exception"""
-        self.config["default_target_schema"] = None
+    def test_no_postgres_schema_and_no_schema_mapping(self):
+        """No postgres schema and no schema mapping should raise an exception"""
+        self.config["postgres_schema"] = None
         self.config["schema_mapping"] = None
         tap_lines = test_utils.get_test_tap_lines("messages-no-primary-key.json")
         with self.assertRaises(Exception) as cm:
             target_postgres.process_singer_messages(self.config, tap_lines)
         self.assertEqual(
-            "Target schema name not defined in config. Neither 'default_target_schema' (string)"
+            "Target schema name not defined in config. Neither 'postgres_schema' (string)"
                             "nor 'schema_mapping' (object) defines target schema for 'test_table_one' stream.",
             str(cm.exception)
         )
 
-    def test_default_target_schema_was_created(self):
-        """Check that the default target schema was created"""
+    def test_postgres_schema_was_created(self):
+        """Check that the postgres target schema was created"""
         schemas = test_utils.get_schemas(self.conn)
         self.assertEqual(schemas, set())
 
@@ -215,14 +215,14 @@ class TestIntegration(unittest.TestCase):
         target_postgres.process_singer_messages(self.config, tap_lines)
 
         schemas = test_utils.get_schemas(self.conn)
-        self.assertEqual(schemas, {self.config['default_target_schema']})
+        self.assertEqual(schemas, {self.config['postgres_schema']})
 
     def test_schema_from_schema_mapping(self):
         """Check that the schema from schema mapping was created"""
         schemas = test_utils.get_schemas(self.conn)
         self.assertEqual(schemas, set())
 
-        self.config["default_target_schema"] = None
+        self.config["postgres_schema"] = None
         self.config["schema_mapping"] = {
             "tap_mysql_test": {
                 "target_schema": "test_schema_one"
@@ -246,7 +246,7 @@ class TestIntegration(unittest.TestCase):
         indices = test_utils.get_table_indexes(self.conn, "test_schema_one.test_table_one")
         self.assertEqual(indices, [])
 
-        self.config["default_target_schema"] = None
+        self.config["postgres_schema"] = None
         self.config["schema_mapping"] = {
             "tap_mysql_test": {
                 "target_schema": "test_schema_one",
@@ -275,7 +275,7 @@ class TestIntegration(unittest.TestCase):
         indices = test_utils.get_table_indexes(self.conn, "test_schema_one.test_table_one")
         self.assertEqual(indices, [])
 
-        self.config["default_target_schema"] = None
+        self.config["postgres_schema"] = None
         self.config["schema_mapping"] = {
             "tap_mysql_test": {
                 "target_schema": "test_schema_one",

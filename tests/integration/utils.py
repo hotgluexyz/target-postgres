@@ -13,12 +13,12 @@ def get_db_config():
     # Default configuration settings for integration tests.
     # --------------------------------------------------------------------------
     # Postgres instance
-    config['host'] = "localhost"
-    config['port'] = 5432
-    config['user'] = "postgres"
-    config['password'] = "postgres"
-    config['dbname'] = "target_test_db"
-    config['default_target_schema'] = f"{SCHEMA_PREFIX}public"
+    config['postgres_host'] = "localhost"
+    config['postgres_port'] = "5432"
+    config['postgres_username'] = "postgres"
+    config['postgres_password'] = "postgres"
+    config['postgres_database'] = "target_test_db"
+    config['postgres_schema'] = f"{SCHEMA_PREFIX}public"
 
     return config
 

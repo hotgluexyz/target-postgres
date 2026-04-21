@@ -15,28 +15,54 @@ LOGGER = get_logger("target_postgres")
 DEFAULT_PARALLELISM = 0  # 0 The number of threads used to flush tables
 DEFAULT_MAX_PARALLELISM = 16  # Don't use more than this number of threads by default when flushing streams in parallel
 
+connect_ui_params = {
+    "postgres_host": {
+        "label": "Host Name",
+        "description": "Your PostgreSQL server host",
+    },
+    "postgres_port": {
+        "label": "Port",
+        "description": "Your PostgreSQL server port",
+    },
+    "postgres_database": {
+        "label": "Database",
+        "description": "Your PostgreSQL database name",
+    },
+    "postgres_username": {
+        "label": "User",
+        "description": "Your PostgreSQL user",
+    },
+    "postgres_password": {
+        "label": "Password",
+        "description": "Your PostgreSQL password",
+        "type": "password",
+    },
+    "postgres_schema": {
+        "label": "Schema",
+        "description": "Your PostgreSQL schema (ie. public)",
+    },
+}
+
 
 def validate_config(config):
     LOGGER.info(f"Validating configuration")
     errors = []
     required_config_keys = [
-        "host",
-        "port",
-        "user",
-        "password",
-        "dbname"
+        "postgres_host",
+        "postgres_port",
+        "postgres_database",
+        "postgres_username",
+        "postgres_password",
     ]
 
-    # Check if mandatory keys exist
     for k in required_config_keys:
         if not config.get(k, None):
             errors.append("Required key is missing from config: [{}]".format(k))
 
-    # Check target schema config
-    config_default_target_schema = config.get("default_target_schema", None)
+    config_postgres_schema = (config.get("postgres_schema") or "").strip()
     config_schema_mapping = config.get("schema_mapping", None)
-    if not config_default_target_schema and not config_schema_mapping:
-        errors.append("Neither 'default_target_schema' (string) nor 'schema_mapping' (object) keys set in config.")
+    if not config_postgres_schema and not config_schema_mapping:
+        errors.append("Neither 'postgres_schema' (string) nor 'schema_mapping' (object) keys set in config.")
 
     if errors:
         errors_str = "\n   * ".join(errors)

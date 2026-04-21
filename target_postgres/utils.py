@@ -33,11 +33,11 @@ def float_to_decimal(value):
 
 def open_postgres_connection(config):
         conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(
-            config['host'],
-            config['dbname'],
-            config['user'],
-            config['password'],
-            config['port']
+            config['postgres_host'],
+            config['postgres_database'],
+            config['postgres_username'],
+            config['postgres_password'],
+            config['postgres_port'],
         )
 
         if 'ssl' in config and config['ssl'] in [True, 'true']:

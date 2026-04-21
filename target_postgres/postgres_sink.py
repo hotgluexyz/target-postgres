@@ -134,7 +134,7 @@ class PostgresSink:
         #  --------------------------
         #  Target schema name can be defined in multiple ways:
         #
-        #   1: 'default_target_schema' key  : Target schema is the same for every incoming stream if
+        #   1: 'postgres_schema' key  : Target schema is the same for every incoming stream if
         #       not specified explicitly for a given stream in the `schema_mapping` object
         #   2: 'schema_mapping' key : Target schema defined explicitly for a given stream.
         #       Example config.json:
@@ -148,7 +148,7 @@ class PostgresSink:
         #                   }
         #               }
         #           }
-        config_default_target_schema = (self.config.get('default_target_schema', '') or '').strip()
+        config_postgres_schema = (self.config.get('postgres_schema', '') or '').strip()
         config_schema_mapping = self.config.get('schema_mapping', {})
 
         stream_name = stream_schema_message['stream']
@@ -162,11 +162,11 @@ class PostgresSink:
             if stream_table_name in indices:
                 self.indices.extend(indices.get(stream_table_name, []))
 
-        elif config_default_target_schema:
-            self.schema_name = config_default_target_schema
+        elif config_postgres_schema:
+            self.schema_name = config_postgres_schema
 
         if not self.schema_name:
-            raise Exception("Target schema name not defined in config. Neither 'default_target_schema' (string)"
+            raise Exception("Target schema name not defined in config. Neither 'postgres_schema' (string)"
                             "nor 'schema_mapping' (object) defines target schema for '{}' stream."
                             .format(stream_name))
 
