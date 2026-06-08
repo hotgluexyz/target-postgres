@@ -49,7 +49,7 @@ def open_postgres_connection(config):
         # This avoids issues with pooled connections that don't support startup parameters
         statement_timeout = config.get('statement_timeout', 20)  # Default to 20 minutes
         with conn.cursor() as cur:
-            cur.execute(f"SET statement_timeout = {str(60000 * statement_timeout)}")
+            cur.execute(f"SET statement_timeout = {str(int(60000 * statement_timeout))}")
         
         return conn
 
