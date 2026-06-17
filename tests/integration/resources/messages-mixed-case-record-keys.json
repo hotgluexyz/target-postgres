@@ -1,0 +1,2 @@
+{"type": "SCHEMA", "stream": "direct_dynamicbc_AGBIInvPostingGroups", "schema": {"type": "object", "properties": {"Code": {"type": ["null", "string"]}, "Description": {"type": ["null", "string"]}, "company_id": {"type": ["null", "string"]}}}, "key_properties": ["Code", "company_id"]}
+{"type": "RECORD", "stream": "direct_dynamicbc_AGBIInvPostingGroups", "record": {"code": "INV001", "description": "Inventory Posting Group 1", "company_id": "COMP001"}, "time_extracted": "2026-06-17T15:27:49.000000Z"}

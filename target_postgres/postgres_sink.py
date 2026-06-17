@@ -86,6 +86,11 @@ def safe_column_name(name):
     return '"{}"'.format(name).lower()
 
 
+def normalize_record_keys(record, property_names):
+    key_map = {k.lower(): k for k in record}
+    return {name: record[key_map[name.lower()]] for name in property_names if name.lower() in key_map}
+
+
 def column_clause(name, schema_property):
     return '{} {}'.format(safe_column_name(name), column_type(schema_property))
 
@@ -442,6 +447,8 @@ class PostgresSink:
                         "or more) Try removing 'multipleOf' methods from JSON schema.") from ex
                 raise RecordValidationException(
                     f"Record does not pass schema validation. RECORD: {record}") from ex
+
+        record = normalize_record_keys(record, self.stream_schema_message["schema"]["properties"])
 
         for jsonb_column in self.jsonb_columns:
             if jsonb_column in record and record[jsonb_column]:

@@ -331,6 +331,14 @@ class TestIntegration(unittest.TestCase):
 
         self.assertEqual(pks, expected_pks)
 
+    def test_mixed_case_record_keys(self):
+        """Records with lowercase keys should match PascalCase schema key_properties"""
+        tap_lines = test_utils.get_test_tap_lines("messages-mixed-case-record-keys.json")
+        target_postgres.process_singer_messages(self.config, tap_lines)
+        data = test_utils.query_db(self.conn, "SELECT code, description FROM test_public.direct_dynamicbc_agbiinvpostinggroups")
+        self.assertEqual(data[0]["code"], "INV001")
+        self.assertEqual(data[0]["description"], "Inventory Posting Group 1")
+
     def test_column_types_are_correct(self):
         """Check that the column types are correct"""
         columns = test_utils.get_table_columns(self.conn, "test_public.test_table_one")
