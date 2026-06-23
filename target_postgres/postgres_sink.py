@@ -118,7 +118,7 @@ class PostgresSink:
             try:
                 self.validator = fastjsonschema.compile(self.stream_schema_message["schema"])
             except Exception as ex:
-                LOGGER.error(f"Invalid JSON schema for stream {stream_name}: {ex}")
+                LOGGER.error(f"Invalid JSON schema for stream {self.stream_schema_message['stream']}: {ex}")
                 raise
 
         self.schema_name = None
