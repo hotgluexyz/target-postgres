@@ -17,7 +17,7 @@ DEFAULT_MAX_PARALLELISM = 16  # Don't use more than this number of threads by de
 
 
 def validate_config(config):
-    LOGGER.info(f"Validating configuration")
+    LOGGER.info("Validating configuration")
     errors = []
     required_config_keys = [
         "host",
@@ -56,7 +56,7 @@ def flush_stream(sink_list: List[PostgresSink]) -> None:
 def flush_streams(streams_dict: Dict[str, List[PostgresSink]], config: Dict[str, Any]) -> None:
     n_streams_to_flush = len(streams_dict.keys())
     if n_streams_to_flush == 0:
-        LOGGER.info(f"No streams to flush")
+        LOGGER.info("No streams to flush")
         return
 
     # first sync all schemas synchronously
@@ -96,7 +96,7 @@ def emit_state(state):
 
 def process_singer_messages(config, singer_messages):
     """Process singer messages"""
-    LOGGER.info(f"Processing singer messages")
+    LOGGER.info("Processing singer messages")
     state = State()
 
     streams_to_sync = defaultdict[str, List[PostgresSink]](list)
@@ -168,15 +168,15 @@ def process_singer_messages(config, singer_messages):
             raise Exception("Unknown message type '{}' in message {}"
                             .format(singer_message["type"], singer_message))
 
-    LOGGER.info(f"Finished processing singer messages")
-    LOGGER.info(f"Starting to sync data with DB")
+    LOGGER.info("Finished processing singer messages")
+    LOGGER.info("Starting to sync data with DB")
 
     flush_streams(streams_to_sync, config)
 
-    LOGGER.info(f"Finished syncing data with DB")
+    LOGGER.info("Finished syncing data with DB")
 
     emit_state(state)
-    LOGGER.info(f"Target done syncing data")
+    LOGGER.info("Target done syncing data")
 
 
 

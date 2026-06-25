@@ -59,9 +59,9 @@ def open_postgres_connection(config):
 
 def test_postgres_connection(config):
     LOGGER = get_logger("target_postgres")
-    LOGGER.info(f"Testing PostgreSQL connection")
+    LOGGER.info("Testing PostgreSQL connection")
     with open_postgres_connection(config) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT 1")
             cur.fetchone()
-            LOGGER.info(f"PostgreSQL connection test successful")
+            LOGGER.info("PostgreSQL connection test successful")
